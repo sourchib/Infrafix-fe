@@ -3,6 +3,12 @@
 ## Gambaran Umum
 README ini menyediakan gambaran umum tentang dashboard LaporinYuk, sebuah sistem yang dirancang untuk mengelola dan melacak berbagai tugas dan laporan. Dashboard ini menawarkan tampilan yang jelas dan ringkas mengenai metrik dan kemajuan utama.
 
+## Prototype Tampilan Dashboard
+
+Berikut adalah tampilan prototype dari dashboard LaporinYuk:
+
+![Prototype Dashboard LaporinYuk](assets/dashboard_prototype.png)
+
 ## Fitur
 
 ### Navigasi
