@@ -7,8 +7,7 @@
   to = "http://103.164.191.212:8082/:splat"
   status = 200
   force = true
-  [redirects.headers]
-    Origin = "http://103.164.191.212:8082"
+  headers = {Origin = "http://103.164.191.212:8082", Referer = "http://103.164.191.212:8082/"}
 
 [[redirects]]
   from = "/*"
