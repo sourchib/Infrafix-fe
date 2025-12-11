@@ -1,5 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  loadCaptchaEnginge,
+  LoadCanvasTemplate,
+  validateCaptcha,
+} from 'react-simple-captcha';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
@@ -22,79 +27,14 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [captchaInput, setCaptchaInput] = useState('');
-  const [captchaCode, setCaptchaCode] = useState(''); // Store the real captcha code
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
+  const [isCaptchaValid, setIsCaptchaValid] = useState(false);
   const navigate = useNavigate();
   const loginUser = useAuthStore((state) => state.login);
-
-  const generateCaptcha = useCallback(() => {
-    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-        code += chars[Math.floor(Math.random() * chars.length)];
-    }
-    setCaptchaCode(code);
-    drawCaptcha(code);
-  }, []);
-
-  const drawCaptcha = (code: string) => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#f3f4f6';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Add noise (lines)
-            for (let i = 0; i < 7; i++) {
-                ctx.strokeStyle = getRandomColor();
-                ctx.beginPath();
-                ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
-                ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
-                ctx.stroke();
-            }
-
-             // Add noise (dots)
-             for (let i = 0; i < 30; i++) {
-                ctx.fillStyle = getRandomColor();
-                ctx.beginPath();
-                ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 1, 0, 2 * Math.PI);
-                ctx.fill();
-            }
-
-            ctx.font = '24px Arial';
-            ctx.fillStyle = '#374151';
-            ctx.textBaseline = 'middle';
-            
-            // Draw text with slight random positioning
-            const textWidth = ctx.measureText(code).width;
-            const startX = (canvas.width - textWidth) / 2;
-            
-            for(let i=0; i<code.length; i++) {
-                ctx.save();
-                ctx.translate(startX + (i * 20), canvas.height/2);
-                ctx.rotate((Math.random() - 0.5) * 0.4);
-                ctx.fillText(code[i], 0, 0);
-                ctx.restore();
-            }
-        }
-    }
-  };
-
-  const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  };
+  const { isLoggedIn } = useAuthStore(); // Get isLoggedIn state
 
   useEffect(() => {
-    generateCaptcha();
-  }, [generateCaptcha]);
+    loadCaptchaEnginge(6); // 6 is the number of characters in the captcha
+  }, []);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -103,12 +43,12 @@ const Login: React.FC = () => {
   const doSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (captchaInput !== captchaCode) {
-      toast.error('Captcha salah, silakan coba lagi!');
-      generateCaptcha(); // Regenerate on failure
-      setCaptchaInput('');
+    if (validateCaptcha(captchaInput) === false) {
+      toast.error('Captcha salah, silakan coba lagi!')
       return
     }
+
+    setIsCaptchaValid(true);
 
     try {
       const response = await login(email, password);
@@ -236,23 +176,8 @@ const Login: React.FC = () => {
               Verifikasi Captcha
             </label>
 
-            {/* Custom Canvas Captcha */}
-            <div className="flex items-center space-x-2 mt-2">
-                <canvas 
-                    ref={canvasRef} 
-                    width="160" 
-                    height="50" 
-                    className="border border-gray-300 rounded"
-                />
-                <button 
-                    type="button" 
-                    onClick={generateCaptcha}
-                    className="text-sm text-primary hover:text-primary-dark focus:outline-none"
-                    type="button"
-                >
-                    Reload
-                </button>
-            </div>
+            {/* gambar captcha */}
+            <LoadCanvasTemplate reloadText="Reload" />
 
             <input
               type="text"
